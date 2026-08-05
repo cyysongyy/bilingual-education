@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>雙語教育研習 · 互動遊戲</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header><div class="wrap">
+  <div style="flex:1">
+    <h1>Bilingual Education · 互動遊戲</h1>
+    <div class="sub">從興南到辰光 ｜ 陳彥揚 校長</div>
+  </div>
+  <span class="badge" id="mode">連線中</span>
+</div></header>
+
+<div class="wrap">
+
+  <!-- ===== 登入 ===== -->
+  <div id="login">
+    <div class="card">
+      <h2>歡迎加入 👋</h2>
+      <p class="muted">請留下暱稱，等一下四個關卡的結果會即時出現在講台的螢幕上。</p>
+      <label>暱稱（可用真名或綽號）</label>
+      <input id="name" maxlength="12" placeholder="例：小明老師">
+      <label>服務學校 / 單位</label>
+      <input id="school" maxlength="20" placeholder="例：○○國中">
+      <label>身分</label>
+      <select id="role">
+        <option>導師</option><option>科任教師</option><option>英語教師</option>
+        <option>行政人員（主任／組長）</option><option>校長</option><option>其他</option>
+      </select>
+      <button onclick="join()">開始 →</button>
+      <p class="tiny center">資料只用於本場研習的即時統計，研習結束後即可刪除。</p>
+    </div>
+  </div>
+
+  <!-- ===== 主畫面 ===== -->
+  <div id="main" class="hide">
+    <div class="card tint">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+        <div>
+          <h2 style="margin-bottom:2px" id="hello"></h2>
+          <div class="tiny" id="whoami"></div>
+        </div>
+        <button class="small ghost" onclick="logout()">換人</button>
+      </div>
+      <div class="meta mt"><span>完成進度</span><span id="ptxt">0 / 4</span></div>
+      <div class="bar"><i id="pbar"></i></div>
+    </div>
+
+    <div id="menu"></div>
+
+    <div class="card">
+      <h3>把這一頁分享給旁邊的人</h3>
+      <div id="qrbox">
+        <div id="qr"></div>
+        <div class="tiny center" id="url"></div>
+      </div>
+      <button class="ghost small mt" onclick="bigQR()">投影用大 QR Code</button>
+      <a class="btn small ghost" href="host.html">主持人畫面</a>
+    </div>
+
+    <div class="card dark">
+      <h3>玩法說明</h3>
+      <p class="tiny" style="color:#cfe0de">四個關卡對應研習的四個段落。講到哪一段，就玩哪一關——不用一次玩完。<br>
+      每一關結束後會給你一段「可以帶回學校用」的東西，記得截圖。</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== 投影用大 QR ===== -->
+<div class="qrfull" id="qrfull" onclick="this.classList.remove('on')">
+  <h2>用手機掃描，一起玩</h2>
+  <div class="white" id="qrbig"></div>
+  <div class="url" id="urlbig"></div>
+  <div class="tiny" style="color:#5FA9A2">點一下畫面關閉</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="common.js"></script>
+<script>
+const shareURL = location.href.split('#')[0].split('?')[0];
+
+document.getElementById('mode').textContent = APP.online() ? '已連線' : '離線模式';
+if (!APP.online()) document.getElementById('mode').className = 'badge off';
+
+function join(){
+  const name = document.getElementById('name').value.trim();
+  if(!name){ alert('請先輸入暱稱'); return; }
+  APP.setMe({
+    name,
+    school: document.getElementById('school').value.trim(),
+    role: document.getElementById('role').value,
+    pid: (APP.me()||{}).pid
+  });
+  render();
+}
+function logout(){ localStorage.removeItem('be_me'); localStorage.removeItem('be_res'); location.reload(); }
+
+function render(){
+  const me = APP.me();
+  if(!me || !me.name){ document.getElementById('login').classList.remove('hide');
+    document.getElementById('main').classList.add('hide'); return; }
+  document.getElementById('login').classList.add('hide');
+  document.getElementById('main').classList.remove('hide');
+  document.getElementById('hello').textContent = 'Hi, ' + me.name;
+  document.getElementById('whoami').textContent = [me.school, me.role].filter(Boolean).join(' · ');
+
+  const res = APP.results();
+  const done = GAMES.filter(g => res[g.id]).length;
+  document.getElementById('ptxt').textContent = done + ' / ' + GAMES.length;
+  document.getElementById('pbar').style.width = (done/GAMES.length*100) + '%';
+
+  document.getElementById('menu').innerHTML = GAMES.map((g,i)=>{
+    const r = res[g.id];
+    return `<a class="game" href="${g.file}">
+      <div class="n ${i%2?'a':''}">${g.n}</div>
+      <div style="flex:1">
+        <div class="tiny" style="color:var(--teal2);font-weight:700">${g.part} · 約 ${g.mins} 分鐘</div>
+        <h3>${g.title}</h3>
+        <p>${g.desc}</p>
+      </div>
+      ${r ? `<div class="done">✓ ${r.score}/${r.max}</div>` : ''}
+    </a>`;
+  }).join('');
+}
+
+// QR
+function makeQR(el, size){
+  el.innerHTML='';
+  new QRCode(el, { text: shareURL, width:size, height:size,
+    colorDark:'#12312F', colorLight:'#ffffff', correctLevel: QRCode.CorrectLevel.M });
+}
+window.addEventListener('load', ()=>{
+  try{
+    makeQR(document.getElementById('qr'), 168);
+    document.getElementById('url').textContent = shareURL;
+    document.getElementById('urlbig').textContent = shareURL;
+  }catch(e){ document.getElementById('url').textContent = shareURL; }
+});
+function bigQR(){
+  const box = document.getElementById('qrbig');
+  if(!box.hasChildNodes()){
+    const s = Math.min(window.innerWidth, window.innerHeight) * 0.5;
+    makeQR(box, Math.max(220, Math.round(s)));
+  }
+  document.getElementById('qrfull').classList.add('on');
+}
+
+render();
+</script>
+</body>
+</html>

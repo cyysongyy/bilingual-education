@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>關卡 2 · CLIL 教案拼裝廠</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="hd"></div>
+<div class="wrap">
+  <div class="meta"><span id="stage"></span><span id="sc">0 分</span></div>
+  <div class="bar"><i id="pb"></i></div>
+  <div id="app"></div>
+</div>
+
+<script src="common.js"></script>
+<script>
+const me = APP.requireMe();
+document.getElementById('hd').innerHTML =
+  APP.header('關卡 2 · CLIL 教案拼裝廠', 'PART II ｜ 興南四欄式教案的實作版', true);
+
+/* ---- 第一階段：把碎片放進正確的欄位（含「不該出現」的陷阱） ---- */
+const BINS = {
+  C:{ n:'Content ／ Academic', z:'學科關鍵語言（OF）', c:'var(--teal)' },
+  S:{ n:'Cognition ／ Scaffold', z:'教師的提問與指令（FOR）', c:'var(--teal2)' },
+  P:{ n:'Performance ／ Product', z:'學生要說出來的完整句', c:'var(--amber)' },
+  X:{ n:'不該出現在這堂課', z:'那是英語課的評量目標', c:'var(--err)' },
+};
+
+const PIECES = APP.shuffle([
+  { t:'sink 下沉 · float 浮起 · density 密度', a:'C', why:'學科概念的名字。這一欄是備課時第一個要決定的。' },
+  { t:'heavier / lighter than', a:'C', why:'比較句所需的關鍵語言，掛在「浮力」這個概念上，屬於學科語言。' },
+  { t:'volume 體積 · mass 質量', a:'C', why:'理化單元的核心字彙，屬於 Content／Academic。' },
+  { t:'Look at the tank. Tell me what you see.', a:'S', why:'教師的引導指令。它不是學科內容，是為了讓活動跑起來。' },
+  { t:'Which one will sink? Why do you think so?', a:'S', why:'提問（6W1H）＋ 要求說明理由，這是 Cognition 欄位真正該放的東西。' },
+  { t:'Work with your partner. Compare your answers.', a:'S', why:'合作學習的課室指令，屬於 Scaffold。' },
+  { t:'Let\'s put them into two groups: SINK and FLOAT.', a:'S', why:'分類活動的指令，同時建立了認知層次（比較與分類）。' },
+  { t:'The ___ sinks because it is heavier than water.', a:'P', why:'學生的產出句型，留空讓每個學生填自己觀察到的東西。' },
+  { t:'The ___ floats because it is lighter than water.', a:'P', why:'成對的產出句型。整堂課的目標，就是讓學生說出這一句。' },
+  { t:'I think the ball will ___, because ___.', a:'P', why:'預測 ＋ 說明理由的產出句，認知層次比單純描述更高。' },
+  { t:'請學生默寫「density」這個單字（10 分）', a:'X', why:'這是英語科的評量目標。「不要把評量重點放在字彙拼讀」——興南第一版考卷就是這樣踩坑的。' },
+  { t:'選出正確的比較級：heavier / more heavy（文法題）', a:'X', why:'文法句型檢測屬於英語課。雙語課評的是學科理解，語言只是表達管道。' },
+]);
+
+/* ---- 第二階段：自己填一份三欄簡案 ---- */
+let stage = 1, i = 0, score = 0;
+const MAX1 = PIECES.length * 8, MAX2 = 24, MAX = MAX1 + MAX2;
+const app = document.getElementById('app');
+
+function meta(){
+  document.getElementById('sc').textContent = score + ' 分';
+  document.getElementById('stage').textContent =
+    stage === 0 ? '說明' : stage === 1 ? `拼裝　第 ${i+1} / ${PIECES.length} 片`
+    : stage === 2 ? '換你設計' : '完成';
+  const d = stage <= 1 ? i/PIECES.length*0.7 : stage === 2 ? 0.75 : 1;
+  document.getElementById('pb').style.width = (d*100) + '%';
+}
+
+function intro(){
+  stage = 0; meta();
+  app.innerHTML = `
+    <div class="card">
+      <h2>單元：國中理化「浮力 Buoyancy」</h2>
+      <p class="muted">學科目標：能判斷物體在液體中的浮沉，並說明原因。</p>
+      <p>下面會出現 12 張碎片。把每一張放進正確的欄位——其中有兩張<b>根本不該出現在雙語課</b>，看你抓不抓得出來。</p>
+      <div class="card tint" style="padding:12px;margin-bottom:0">
+        ${Object.values(BINS).slice(0,3).map(b=>`<div style="margin-bottom:6px">
+          <b style="color:${b.c}">${b.n}</b><div class="tiny">${b.z}</div></div>`).join('')}
+      </div>
+    </div>
+    <button onclick="stage=1;i=0;score=0;q();">開始拼裝 →</button>`;
+}
+
+function q(){
+  meta();
+  const p = PIECES[i];
+  app.innerHTML = `
+    <div class="card">
+      <div class="tiny" style="color:var(--teal2);font-weight:700">這一片要放進哪一欄？</div>
+      <div style="font-size:17px;font-weight:700;margin:12px 0 2px;line-height:1.5">${APP.esc(p.t)}</div>
+    </div>
+    ${Object.entries(BINS).map(([k,b])=>`
+      <button class="opt" onclick="pick('${k}')">
+        <span style="color:${b.c}">${b.n}</span><small>${b.z}</small>
+      </button>`).join('')}`;
+}
+
+function pick(k){
+  const p = PIECES[i];
+  const ok = k === p.a;
+  if (ok) score += 8;
+  document.querySelectorAll('.opt').forEach((b, idx)=>{
+    const key = Object.keys(BINS)[idx]; b.onclick = null;
+    if (key === p.a) b.classList.add('right');
+    else if (key === k) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  app.insertAdjacentHTML('beforeend', `
+    <div class="fb ${ok?'ok':'no'}"><b>${ok?'正確 +8':'正解：'+BINS[p.a].n}</b>${p.why}</div>
+    <button onclick="next()">${i===PIECES.length-1?'換你設計 →':'下一片 →'}</button>`);
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+function next(){ i++; if(i>=PIECES.length){ build(); } else { q(); window.scrollTo({top:0}); } }
+
+function build(){
+  stage = 2; meta();
+  app.innerHTML = `
+    <div class="card">
+      <h2>換你的單元</h2>
+      <p class="muted">拿你下個月真的要教的一個單元。只要填得出來，它就是一份可以上的雙語簡案。<br>
+      送出後會出現在講台的螢幕上，全場一起看。</p>
+    </div>
+    <div class="card">
+      <label>科目 ＋ 單元名稱</label>
+      <input id="unit" maxlength="40" placeholder="例：理化 · 浮力 / 國文 · 桃花源記">
+      <label>學科目標（一句話，中文就好）</label>
+      <input id="goal" maxlength="60" placeholder="例：能判斷物體在液體中的浮沉並說明原因">
+    </div>
+    <div class="card tint">
+      <label style="color:var(--teal)">① Content ／ 5 個學科關鍵字</label>
+      <textarea id="c1" placeholder="例：sink, float, density, heavier, lighter"></textarea>
+      <label style="color:var(--teal2)">② Scaffold ／ 3 句你會重複說的提問或指令</label>
+      <textarea id="c2" placeholder="例：Look at the tank.&#10;Which one will sink?&#10;Work with your partner."></textarea>
+      <label style="color:var(--amberD)">③ Product ／ 1 個留空的產出句型</label>
+      <textarea id="c3" placeholder="例：The ___ sinks because it is heavier than water."></textarea>
+      <label>④ 一個非語言鷹架（圖片／實物／動作／表格）</label>
+      <input id="c4" maxlength="60" placeholder="例：一個透明水槽 ＋ 三顆不同密度的球">
+    </div>
+    <button onclick="submitPlan()">送出我的簡案 →</button>
+    <button class="ghost" onclick="skip()">先跳過，直接看結果</button>`;
+}
+
+function grade(v, min){ const s = (v||'').trim(); return s.length >= min ? 6 : (s.length ? 3 : 0); }
+
+async function submitPlan(){
+  const plan = {
+    unit: document.getElementById('unit').value.trim(),
+    goal: document.getElementById('goal').value.trim(),
+    content: document.getElementById('c1').value.trim(),
+    scaffold: document.getElementById('c2').value.trim(),
+    product: document.getElementById('c3').value.trim(),
+    prop: document.getElementById('c4').value.trim(),
+  };
+  if(!plan.unit || !plan.content){ alert('至少填「單元名稱」與「5 個關鍵字」'); return; }
+  score += grade(plan.content,6) + grade(plan.scaffold,10) + grade(plan.product,10) + grade(plan.prop,3);
+  finish(plan);
+}
+function skip(){ finish(null); }
+
+async function finish(plan){
+  stage = 3; meta();
+  const pct = Math.round(score / MAX * 100);
+  app.innerHTML = `
+    <div class="card center">
+      <div class="tiny">關卡 2 完成</div>
+      <div style="font-size:52px;font-weight:800;color:var(--teal);line-height:1.1">${score}</div>
+      <div class="muted">滿分 ${MAX} 分　·　${pct}%</div>
+    </div>
+    ${plan ? `<div class="card warm">
+      <h3>你的雙語簡案</h3>
+      <div style="font-size:17px;font-weight:800">${APP.esc(plan.unit)}</div>
+      <div class="tiny" style="margin-bottom:10px">${APP.esc(plan.goal)}</div>
+      <div class="card" style="margin-bottom:8px;padding:12px">
+        <div class="tiny" style="color:var(--teal);font-weight:800">CONTENT</div>${APP.esc(plan.content).replace(/\n/g,'<br>')}</div>
+      <div class="card" style="margin-bottom:8px;padding:12px">
+        <div class="tiny" style="color:var(--teal2);font-weight:800">SCAFFOLD</div>${APP.esc(plan.scaffold).replace(/\n/g,'<br>')}</div>
+      <div class="card" style="margin-bottom:8px;padding:12px">
+        <div class="tiny" style="color:var(--amberD);font-weight:800">PRODUCT</div>${APP.esc(plan.product).replace(/\n/g,'<br>')}</div>
+      <div class="card" style="margin-bottom:0;padding:12px">
+        <div class="tiny" style="color:var(--grey);font-weight:800">非語言鷹架</div>${APP.esc(plan.prop)}</div>
+      <p class="tiny mt">請截圖。這就是興南 109 學年度定下來的四欄式教案的國中簡化版。</p>
+    </div>` : ''}
+    <div class="card dark">
+      <h3>興南五年的評量原則</h3>
+      <p class="tiny" style="color:#cfe0de">
+      ① 評學科理解，不評語言正確（答案寫中文、畫圖、比手勢都算對）<br>
+      ② 絕不評量拼字與文法——那是英語課的事<br>
+      ③ Oral ／ Teamwork ／ Worksheet ／ Game 四種管道並用</p>
+    </div>
+    <a class="btn" href="g3.html">前往關卡 3 · SEL 晨光句型挑戰 →</a>
+    <a class="btn ghost" href="index.html">回到首頁</a>
+    <div class="tiny center" id="sent">上傳中…</div>`;
+  const r = await APP.send('g2', score, MAX, { plan });
+  document.getElementById('sent').textContent =
+    r.ok ? '✓ 已送到主持人畫面（教案牆）' : (r.offline ? '（離線模式：只存在這支手機）' : '上傳失敗，已存在本機');
+}
+
+intro();
+</script>
+</body>
+</html>

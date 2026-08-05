@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>關卡 4 · 校長的兩難</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="hd"></div>
+<div class="wrap">
+  <div class="meta"><span id="stage"></span><span id="sc"></span></div>
+  <div class="bar"><i id="pb"></i></div>
+  <div id="gauge"></div>
+  <div id="app"></div>
+</div>
+
+<script src="common.js"></script>
+<script>
+const me = APP.requireMe();
+document.getElementById('hd').innerHTML =
+  APP.header('關卡 4 · 校長的兩難', 'PART IV ｜ 五個真實情境 · 四個指標', true);
+
+/* 四個指標：教師信任 T / 家長支持 P / 課程品質 Q / 你的續航力 E */
+let S = { T:50, P:50, Q:50, E:50 };
+const KEY = { T:'教師信任', P:'家長支持', Q:'課程品質', E:'你的續航力' };
+const COL = { T:'var(--teal)', P:'#2E86C1', Q:'var(--amber)', E:'#6C3483' };
+
+const SC = [
+  {
+    t:'開學校務會議，你要宣布學校要開始做雙語。',
+    d:'台下坐著 20 位老師，其中一半以上教了 15 年以上。你只有 5 分鐘。',
+    o:[
+      { l:'A　「這是教育部 2030 雙語國家政策，我們必須配合。」',
+        e:{T:-12,P:2,Q:-5,E:-8},
+        f:'掛在政策下，老師覺得是負擔；掛在學校願景下，老師才覺得是身分。這句話會讓你在往後兩年，每一次都得靠公文推動。' },
+      { l:'B　「我找了三位老師先試一年，做得起來我們再談下一步。」',
+        e:{T:14,P:0,Q:8,E:10},
+        f:'興南五年的做法：第一年爭取 20% 的人，不要爭取 100%。觀望者是被「看見」說服的，不是被「說服」說服的。' },
+      { l:'C　「下學期開始，全校每班每週一節雙語課。」',
+        e:{T:-18,P:5,Q:-12,E:-14},
+        f:'第一年不要碰課表。碰課表就是碰老師的生存空間，抗拒會直接拉滿——而且沒有共備機制的雙語課，品質會很難看。' },
+    ]
+  },
+  {
+    t:'一位資深導師私下跟你說：「校長，我英語不好，我做不來。」',
+    d:'他是班級經營最好的老師之一，全校老師都看著你怎麼回應他。',
+    o:[
+      { l:'A　安排他去參加 40 小時的英語增能研習',
+        e:{T:-8,P:0,Q:0,E:-6},
+        f:'這是把問題丟回給他。他要的不是英語能力，是「我做得到」的證據。而且 40 小時的研習只會讓他更確定自己不行。' },
+      { l:'B　「你不用英語好。先來看一次別人的課，不用自己上。」',
+        e:{T:15,P:0,Q:6,E:6},
+        f:'能力型抗拒最好解——邀請他來看，不要先叫他上。興南九位老師沒有一位是英語系；需要的是「把一個單元的關鍵語言想清楚」的能力，不是流利度。' },
+      { l:'C　「那你先不要做沒關係，我找別人。」',
+        e:{T:4,P:0,Q:-6,E:-4},
+        f:'短期和平，長期損失。他會變成永久的局外人，而其他觀望的老師學會了「說不做就可以不做」。' },
+    ]
+  },
+  {
+    t:'你爭取到 30 萬元的雙語推動經費，只能選一個用途。',
+    d:'總務主任下週就要你核銷計畫。',
+    o:[
+      { l:'A　聘一位外師，帶三個班',
+        e:{T:2,P:12,Q:6,E:-6},
+        f:'外師會走，社群不會。外師教一個班；社群改變整個學校對備課的想像。而且經費一停，課程就跟著停。' },
+      { l:'B　買一套現成的雙語教材',
+        e:{T:-4,P:4,Q:2,E:0},
+        f:'套裝教材不合你的學生。興南五年沒有買過任何一套教材——教案全部由校內導師與科任自編，那才會留下來。' },
+      { l:'C　送四位老師出去看別人怎麼做，＋ 印學習單與教具',
+        e:{T:12,P:2,Q:14,E:8},
+        f:'錢要花在「讓老師出去看、讓老師出去講」。回來的那四個人，就是你未來三年的火種。' },
+    ]
+  },
+  {
+    t:'期末考完，一位家長打電話進來：「我的孩子數學變差了，是不是因為雙語？」',
+    d:'這通電話會決定接下來一整年家長社群的風向。',
+    o:[
+      { l:'A　「請放心，雙語絕對不會影響學科成績。」',
+        e:{T:0,P:-6,Q:0,E:-6},
+        f:'你保證了一件你無法保證的事。只要期末再掉一次，你就失去所有信用。承認限制，反而會贏得信任。' },
+      { l:'B　把孩子的考卷調出來，跟家長一起看是哪幾題錯、是概念還是語言',
+        e:{T:6,P:16,Q:10,E:4},
+        f:'這是唯一有用的方法，也順便驗證了一件事：雙語課的評量必須「評學科理解，不評語言正確」，否則你根本無從分辨。' },
+      { l:'C　「這是國家政策，全國的學校都在做。」',
+        e:{T:-2,P:-14,Q:0,E:-8},
+        f:'家長要的是他孩子的答案，不是全國的答案。這句話會把一個焦慮的家長變成一個生氣的家長。' },
+    ]
+  },
+  {
+    t:'第二年，那位最投入、做出全校第一份完整教案的老師，申請調校。',
+    d:'她要回家鄉照顧父母，理由無可挑剔。',
+    o:[
+      { l:'A　全力慰留，給她行政減課與加給',
+        e:{T:-4,P:0,Q:-4,E:-10},
+        f:'留不住的。而且用資源綁人，其他老師會看在眼裡——下一次他們也會拿走的權利來談條件。' },
+      { l:'B　請她把課程與教案完整交接，並邀請她之後回來當講師',
+        e:{T:14,P:4,Q:16,E:12},
+        f:'讓老師成為講者，不是聽眾。她離開了，但她的教案格式、她的共備紀錄、她的課堂影片留下來了——這就是「返回：轉化貢獻」。' },
+      { l:'C　接受她離開，明年重新找人從頭做起',
+        e:{T:0,P:0,Q:-16,E:-8},
+        f:'五年累積會歸零。行政最重要的資產不是人，是「人留下來的東西」：共備紀錄、教案、學習單、影片、期末試卷。' },
+    ]
+  },
+];
+
+let i = 0, picks = [];
+const app = document.getElementById('app');
+
+function meta(){
+  document.getElementById('sc').textContent = i < SC.length ? '' : '結算';
+  document.getElementById('stage').textContent = i < SC.length ? `情境 ${i+1} / ${SC.length}` : '結果';
+  document.getElementById('pb').style.width = (i/SC.length*100) + '%';
+}
+function gauge(){
+  document.getElementById('gauge').innerHTML = `<div class="card" style="padding:13px">
+    ${Object.keys(KEY).map(k=>`
+      <div class="hbar"><div class="lb" style="flex:0 0 82px;font-size:13px">${KEY[k]}</div>
+      <div class="tr" style="height:14px"><i style="width:${Math.max(0,Math.min(100,S[k]))}%;background:${COL[k]}"></i></div>
+      <div class="vl" style="flex:0 0 34px;font-size:12px">${S[k]}</div></div>`).join('')}
+  </div>`;
+}
+
+function intro(){
+  document.getElementById('gauge').innerHTML = '';
+  app.innerHTML = `
+    <div class="card">
+      <h2>五個情境，沒有標準答案</h2>
+      <p class="muted">每一個都是真的發生過的。你的每一個決定會改變四個指標——起始值都是 50。</p>
+      <div class="card tint" style="padding:12px">
+        ${Object.keys(KEY).map(k=>`<span class="badge" style="background:${COL[k]};margin-right:6px">${KEY[k]}</span>`).join('')}
+      </div>
+      <p class="tiny">最後會依四個指標的組合，給你一種「校長型」——四種都有代價，也都有價值。</p>
+      <button onclick="i=0;picks=[];S={T:50,P:50,Q:50,E:50};q()">開始 →</button>
+    </div>`;
+}
+
+function q(){
+  meta(); gauge();
+  const s = SC[i];
+  app.innerHTML = `
+    <div class="card">
+      <div class="tiny" style="color:var(--amberD);font-weight:700">情境 ${i+1}</div>
+      <div style="font-size:17px;font-weight:800;margin:8px 0 6px;line-height:1.5">${APP.esc(s.t)}</div>
+      <div class="muted" style="font-size:14px">${APP.esc(s.d)}</div>
+    </div>
+    ${s.o.map((o,k)=>`<button class="opt" onclick="pick(${k})">${APP.esc(o.l)}</button>`).join('')}`;
+  window.scrollTo({top:0});
+}
+
+function pick(k){
+  const o = SC[i].o[k];
+  picks.push({ scene: i+1, choice: 'ABC'[k] });
+  Object.keys(o.e).forEach(m => { S[m] = Math.max(0, Math.min(100, S[m] + o.e[m])); });
+  gauge();
+  const delta = Object.keys(o.e).filter(m=>o.e[m]!==0)
+    .map(m=>`<span style="color:${o.e[m]>0?'var(--ok)':'var(--err)'};font-weight:800;margin-right:9px">${KEY[m]} ${o.e[m]>0?'+':''}${o.e[m]}</span>`).join('');
+  document.querySelectorAll('.opt').forEach((b,idx)=>{ b.onclick=null; if(idx!==k) b.classList.add('dim'); });
+  app.insertAdjacentHTML('beforeend', `
+    <div class="fb ${ (o.e.T+o.e.Q+o.e.E) >= 0 ? 'ok':'no' }">
+      <b>${delta}</b>${o.f}
+    </div>
+    <button onclick="next()">${i===SC.length-1?'看結算 →':'下一個情境 →'}</button>`);
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+function next(){ i++; if(i>=SC.length) result(); else q(); }
+
+const TYPES = [
+  { k:'gardener', n:'園丁型校長', en:'The Gardener',
+    d:'你把時間花在人身上，而不是花在成果上。你的學校可能第一年看不出什麼，但第三年會突然長出一片東西。<br><br><b>你的風險：</b>太慢。當上級來訪視時，你手上沒有漂亮的數字。記得把共備紀錄、教案、影片留下來——那是你唯一的證據。' },
+  { k:'storyteller', n:'說故事的人', en:'The Storyteller',
+    d:'你懂得讓老師與家長站在同一邊。你不辯贏任何人，你讓他們自己看見。<br><br><b>你的風險：</b>敘事撐得住第一年，撐不住第三年。記得把故事變成制度：把時間排進課表、把檢核表發下去。' },
+  { k:'pusher', n:'硬推型校長', en:'The Pusher',
+    d:'你的執行力很強，短期指標很好看。政策交辦你一定完成。<br><br><b>你的代價：</b>教師信任在下降。當你調校之後，這套東西大概率會停掉——因為它從來不是老師的東西，是你的。' },
+  { k:'survivor', n:'消耗中的校長', en:'The Survivor',
+    d:'你什麼都想顧，結果四邊都在流血。這是最真實、也最常見的狀態——我自己也走過。<br><br><b>給你的話：</b>如果你只能拉一根槓桿，拉「時間」。給老師一節課表上的共備時間，比給他十萬塊有用。行政的成功指標不是「全校都在做」，而是「做的人沒有覺得孤單」。' },
+];
+
+function classify(){
+  const { T,P,Q,E } = S;
+  if (T>=62 && Q>=62 && E>=55) return TYPES[0];
+  if (P>=58 && T>=52) return TYPES[1];
+  if (T<48 && (Q>=50 || P>=55)) return TYPES[2];
+  return TYPES[3];
+}
+
+async function result(){
+  meta(); gauge();
+  const t = classify();
+  const total = S.T + S.P + S.Q + S.E;
+  app.innerHTML = `
+    <div class="card center">
+      <div class="tiny">你的校長型</div>
+      <div style="font-size:26px;font-weight:800;color:var(--teal);margin:4px 0">${t.n}</div>
+      <div class="en">${t.en}</div>
+      <div class="muted mt">四項指標總分 ${total} / 400</div>
+    </div>
+    <div class="card warm"><p style="margin:0">${t.d}</p></div>
+    <div class="card dark">
+      <h3>五根槓桿</h3>
+      <p class="tiny" style="color:#cfe0de">
+        <b style="color:#fff">人</b>　找 2–3 個最「願意」的，不要找最強的<br>
+        <b style="color:var(--amber)">時間</b>　共備時間必須在課表上，不能靠加班（最重要）<br>
+        <b style="color:#fff">錢</b>　花在讓老師出去看、出去講<br>
+        <b style="color:#fff">資料</b>　共備紀錄／教案／學習單／影片／試卷，五樣累積五年<br>
+        <b style="color:#fff">敘事</b>　幫這件事取一個「校本的名字」</p>
+    </div>
+    <div class="card">
+      <h3>你的選擇</h3>
+      <p class="muted" style="margin:0">${picks.map(p=>`情境 ${p.scene} → <b>${p.choice}</b>`).join('　·　')}</p>
+      <p class="tiny mt">主持人畫面會顯示全場在每一題的選擇分布——等一下我們會一起看，哪一題大家分得最開。</p>
+    </div>
+    <a class="btn ghost" href="index.html">回到首頁</a>
+    <div class="tiny center" id="sent">上傳中…</div>`;
+  const r = await APP.send('g4', total, 400, { type:t.k, typeName:t.n, S, picks });
+  document.getElementById('sent').textContent =
+    r.ok ? '✓ 已送到主持人畫面' : (r.offline ? '（離線模式：只存在這支手機）' : '上傳失敗，已存在本機');
+}
+
+intro();
+</script>
+</body>
+</html>

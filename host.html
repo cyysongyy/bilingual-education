@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>主持人畫面 · 即時看板</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body{background:var(--ink);color:#fff}
+  .card{background:#1A3D3A;color:#fff;box-shadow:none}
+  .card h2,.card h3{color:var(--amber)}
+  .stat{background:#1A3D3A} .stat b{color:var(--amber)} .stat span{color:var(--teal3)}
+  .note{background:#1A3D3A;color:#fff} .note .who{color:var(--teal3)}
+  .hbar .tr{background:#0C2827} th{background:var(--teal)} td{background:#1A3D3A;color:#fff;border-color:#0C2827}
+  .tabs button{background:#1A3D3A;color:var(--teal3);border-color:#0C2827}
+  .tabs button.on{background:var(--amber);color:#12312F;border-color:var(--amber)}
+  .muted,.tiny{color:var(--teal3)}
+</style>
+</head>
+<body>
+<div class="wrap wide" style="padding-top:16px">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+    <h1 style="margin:0;font-size:22px">主持人即時看板</h1>
+    <span class="badge" id="st">—</span>
+    <span style="flex:1"></span>
+    <button class="small ghost" style="background:transparent;color:var(--teal3);border-color:#1A3D3A" onclick="load()">立即更新</button>
+    <a class="btn small ghost" style="background:transparent;color:var(--teal3);border-color:#1A3D3A" href="index.html">首頁 / QR</a>
+  </div>
+
+  <div id="warn" class="card hide">
+    <h3>尚未連接 Google Sheet</h3>
+    <p class="tiny">請先依 README 的說明部署 Apps Script，把網址貼進 <b>common.js</b> 的 <code>GAS_URL</code>，再重新上傳。<br>
+    未連接時，學員的作答只會存在他們自己的手機裡。</p>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+  <div id="view"></div>
+</div>
+
+<script src="common.js"></script>
+<script>
+let DATA = [], tab = 'sum';
+const st = document.getElementById('st');
+
+const TABS = [
+  ['sum','總覽'], ['g1','① 三種語言'], ['g2','② 教案牆'],
+  ['g3','③ 情緒雲 ＋ 文字牆'], ['g4','④ 校長的兩難'], ['ppl','參加者'],
+];
+document.getElementById('tabs').innerHTML =
+  TABS.map(([k,n])=>`<button class="${k===tab?'on':''}" onclick="go('${k}')">${n}</button>`).join('');
+function go(k){ tab=k;
+  document.querySelectorAll('.tabs button').forEach((b,i)=>b.classList.toggle('on', TABS[i][0]===k));
+  render(); }
+
+async function load(){
+  if (!APP.online()){ document.getElementById('warn').classList.remove('hide'); st.textContent='離線'; st.className='badge off'; render(); return; }
+  st.textContent = '更新中…';
+  try {
+    const d = await APP.jsonp({ action:'all', session: APP.session() });
+    DATA = (d && d.rows) || [];
+    st.textContent = '已更新 ' + new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    st.className = 'badge';
+  } catch(e){ st.textContent = '連線失敗'; st.className='badge off'; }
+  render();
+}
+
+const by = g => DATA.filter(r => r.game === g);
+const P = r => { try { return typeof r.payload==='string' ? JSON.parse(r.payload) : (r.payload||{}); } catch(e){ return {}; } };
+
+function bar(label, val, max, color){
+  const w = max ? Math.round(val/max*100) : 0;
+  return `<div class="hbar"><div class="lb">${APP.esc(label)}</div>
+    <div class="tr"><i style="width:${w}%;background:${color||'var(--teal2)'}"></i></div>
+    <div class="vl">${val}</div></div>`;
+}
+
+function render(){
+  const v = document.getElementById('view');
+  const people = [...new Set(DATA.map(r=>r.pid))].length;
+
+  if (tab==='sum'){
+    v.innerHTML = `
+      <div class="stats">
+        <div class="stat"><b>${people}</b><span>已加入人數</span></div>
+        ${['g1','g2','g3','g4'].map((g,i)=>`<div class="stat"><b>${by(g).length}</b><span>關卡 ${i+1} 完成</span></div>`).join('')}
+      </div>
+      <div class="card"><h3>各關平均得分率</h3>
+        ${['g1','g2','g3','g4'].map((g,i)=>{
+          const rs = by(g); if(!rs.length) return bar('關卡 '+(i+1), 0, 100);
+          const avg = Math.round(rs.reduce((a,r)=>a + (Number(r.score)/Number(r.max||1)*100),0)/rs.length);
+          return bar('關卡 '+(i+1)+'　'+GAMES[i].title, avg, 100, i%2?'var(--amber)':'var(--teal2)');
+        }).join('')}
+        <p class="tiny">數字為百分比</p>
+      </div>`;
+  }
+
+  else if (tab==='g1'){
+    const rs = by('g1').sort((a,b)=>Number(b.score)-Number(a.score));
+    v.innerHTML = rs.length ? `<div class="card"><h3>關卡 1 排行（共 ${rs.length} 人）</h3>
+      <table><tr><th>#</th><th>暱稱</th><th>單位</th><th>得分</th><th>正確率</th></tr>
+      ${rs.slice(0,25).map((r,i)=>`<tr><td>${i+1}</td><td>${APP.esc(r.name)}</td>
+        <td>${APP.esc(r.school||'')}</td><td>${r.score}/${r.max}</td><td>${P(r).pct||''}%</td></tr>`).join('')}
+      </table></div>` : empty();
+  }
+
+  else if (tab==='g2'){
+    const rs = by('g2').filter(r=>P(r).plan && P(r).plan.unit);
+    v.innerHTML = rs.length ? `<div class="card"><h3>教案牆（${rs.length} 份）</h3></div>
+      <div class="wall">${rs.map(r=>{ const p=P(r).plan; return `<div class="note">
+        <div class="who">${APP.esc(r.name)}${r.school?' · '+APP.esc(r.school):''}</div>
+        <div style="font-weight:800;margin-bottom:4px">${APP.esc(p.unit)}</div>
+        <div class="tiny" style="margin-bottom:6px">${APP.esc(p.goal||'')}</div>
+        <div style="font-size:13px"><b style="color:var(--teal3)">Content</b><br>${APP.esc(p.content||'')}</div>
+        <div style="font-size:13px;margin-top:5px"><b style="color:var(--teal3)">Scaffold</b><br>${APP.esc(p.scaffold||'').replace(/\n/g,'<br>')}</div>
+        <div style="font-size:13px;margin-top:5px"><b style="color:var(--amber)">Product</b><br>${APP.esc(p.product||'')}</div>
+        ${p.prop?`<div class="tiny" style="margin-top:5px">鷹架：${APP.esc(p.prop)}</div>`:''}
+      </div>`; }).join('')}</div>` : empty();
+  }
+
+  else if (tab==='g3'){
+    const rs = by('g3');
+    const EM = { happy:['開心 Happy','#1E8449'], sad:['難過 Sad','#2E86C1'],
+                 angry:['生氣 Angry','#C0392B'], worried:['擔心 Worried','#D98A2B'] };
+    const cnt = {}; rs.forEach(r=>{ const e=P(r).emotion; if(e) cnt[e]=(cnt[e]||0)+1; });
+    const mx = Math.max(1, ...Object.values(cnt));
+    const words = rs.filter(r=>P(r).iam || P(r).ican);
+    v.innerHTML = rs.length ? `
+      <div class="card"><h3>全場情緒雲（${rs.length} 人 Check-in）</h3>
+        ${Object.keys(EM).map(k=>bar(EM[k][0], cnt[k]||0, mx, EM[k][1])).join('')}</div>
+      <div class="card"><h3>Best Bear 文字牆　I am ___. I can ___.</h3></div>
+      <div class="wall">${words.map(r=>{ const p=P(r); return `<div class="note">
+        <div class="who">${APP.esc(r.name)}${r.school?' · '+APP.esc(r.school):''}</div>
+        <div style="font-size:15px;font-weight:700;line-height:1.5">
+          I am ${APP.esc(p.iam||'___')}.<br>I can ${APP.esc(p.ican||'___')}.</div>
+        ${p.feel?`<div class="tiny" style="margin-top:6px">我現在覺得 ${APP.esc(p.feel)}</div>`:''}
+      </div>`; }).join('')}</div>` : empty();
+  }
+
+  else if (tab==='g4'){
+    const rs = by('g4');
+    const SCN = ['① 校務會議怎麼宣布','② 「我英語不好」','③ 30 萬怎麼花','④ 家長來電','⑤ 王牌老師調校'];
+    const dist = SCN.map(()=>({A:0,B:0,C:0}));
+    const types = {};
+    rs.forEach(r=>{ const p=P(r);
+      (p.picks||[]).forEach(k=>{ if(dist[k.scene-1] && dist[k.scene-1][k.choice]!==undefined) dist[k.scene-1][k.choice]++; });
+      if(p.typeName) types[p.typeName]=(types[p.typeName]||0)+1; });
+    const tmx = Math.max(1, ...Object.values(types));
+    v.innerHTML = rs.length ? `
+      <div class="card"><h3>校長型分布（${rs.length} 人）</h3>
+        ${Object.keys(types).map(k=>bar(k, types[k], tmx, 'var(--amber)')).join('') || '<p class="tiny">尚無資料</p>'}</div>
+      ${SCN.map((s,i)=>{ const d=dist[i], m=Math.max(1,d.A,d.B,d.C);
+        return `<div class="card"><h3>${s}</h3>
+          ${['A','B','C'].map(c=>bar('選項 '+c, d[c], m, c==='B'?'var(--ok)':'var(--teal2)')).join('')}</div>`;
+      }).join('')}` : empty();
+  }
+
+  else {
+    const map = {};
+    DATA.forEach(r=>{ if(!map[r.pid]) map[r.pid]={name:r.name,school:r.school,role:r.role,g:new Set()}; map[r.pid].g.add(r.game); });
+    const list = Object.values(map);
+    v.innerHTML = list.length ? `<div class="card"><h3>參加者（${list.length} 人）</h3>
+      <table><tr><th>暱稱</th><th>單位</th><th>身分</th><th>完成關卡</th></tr>
+      ${list.map(p=>`<tr><td>${APP.esc(p.name)}</td><td>${APP.esc(p.school||'')}</td>
+        <td>${APP.esc(p.role||'')}</td><td>${[...p.g].sort().join(' ')}</td></tr>`).join('')}
+      </table></div>` : empty();
+  }
+}
+function empty(){ return `<div class="card center"><p class="muted" style="margin:0">目前還沒有人送出資料。<br>請學員掃描首頁的 QR Code 加入。</p></div>`; }
+
+load();
+setInterval(load, 10000);
+</script>
+</body>
+</html>

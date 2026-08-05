@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>關卡 3 · SEL 晨光句型挑戰</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="hd"></div>
+<div class="wrap">
+  <div class="meta"><span id="stage"></span><span id="sc">0 分</span></div>
+  <div class="bar"><i id="pb"></i></div>
+  <div id="app"></div>
+</div>
+
+<script src="common.js"></script>
+<script>
+const me = APP.requireMe();
+document.getElementById('hd').innerHTML =
+  APP.header('關卡 3 · SEL 晨光句型挑戰', 'PART III ｜ 辰光週一晨光的完整流程', true);
+
+const EMO = [
+  { k:'happy',   zh:'開心 Happy',   c:'#1E8449' },
+  { k:'sad',     zh:'難過 Sad',     c:'#2E86C1' },
+  { k:'angry',   zh:'生氣 Angry',   c:'#C0392B' },
+  { k:'worried', zh:'擔心 Worried', c:'#D98A2B' },
+];
+
+const GEST = APP.shuffle([
+  { t:'手舉拳頭', a:'Silence', why:'全體安靜的信號。辰光五種手勢的第一個，也是最常用的一個。' },
+  { t:'手舉高，握拳比食指', a:'I have something to say', why:'我有話要說。把「插話」轉成一個安靜的動作。' },
+  { t:'BTT', a:'Back – Think – Tell', why:'退一步、想一想、再說出來。衝突現場最有用的一個手勢。' },
+  { t:'老師比 OK 手勢說 eyes on me', a:'Eyes on you', why:'學生回 eyes on you。一問一答，兩秒鐘把全班的注意力收回來。' },
+  { t:'集會時全體先閉眼', a:'Sit and settle 靜坐思考', why:'只要集會，就先閉眼靜坐——這是辰光「圍圈」的中段：閉眼精心等候。' },
+]);
+const GEST_OPTS = ['Silence','I have something to say','Back – Think – Tell','Eyes on you','Sit and settle 靜坐思考'];
+
+const FRAMES = [
+  { q:'When I feel sad, who can help me?', o:['My friend can help me.','I am sad because of you.','Sad is not good.','You should not be sad.'], a:0,
+    why:'留空句型的重點是「每個孩子填的答案都不一樣」。My ___ can help me. —— 這是辰光晨光真的在用的句子。' },
+  { q:'看到同學需要幫忙，你要說：', o:['You are wrong.','Can I help you?','That is not my job.','Ask the teacher.'], a:1,
+    why:'辰光的人際技巧單元：Can I help you? → I can help you! → Thank you! 三句話就是一次完整的互動。' },
+  { q:'When I feel angry, what can I do to calm down?', o:['I can shout louder.','I can blame my friend.','I can take a deep breath.','I can leave the school.'], a:2,
+    why:'泡泡呼吸：想像吹泡泡，吸氣數 3、吐氣數 4，共做 3 次。全英語指令、零理解門檻。' },
+  { q:'興南 Best Bear 選舉、辰光晨光 SEL，用的是同一個句型框架：', o:['I like ___ and ___.','I am ___. I can ___.','This is a ___.','Do you like ___?'], a:1,
+    why:'I am warm. I can give you a hug when you feel sad. —— 六個字的框架，撐起了一整場全校選舉，也撐起了三年的晨光 SEL。' },
+];
+
+const VOCAB = [
+  ['開心','happy'],['難過','sad'],['生氣','angry'],['擔心','worried'],
+  ['平靜','calm'],['緊張','nervous'],['驕傲','proud'],['孤單','lonely'],
+  ['興奮','excited'],['害怕','scared'],['感恩','grateful'],['困惑','confused'],
+];
+const ALLW = VOCAB.map(v=>v[1]);
+
+let stage = 0, i = 0, score = 0, myEmo = null, vHit = 0, vMiss = 0, timer = null;
+const RUSH_CAP = 40;
+const MAX = 10 + GEST.length*6 + FRAMES.length*8 + RUSH_CAP + 12; // checkin + gestures + frames + 快打上限 + checkout
+let rushPts = 0;
+const app = document.getElementById('app');
+const STAGES = ['說明','Check-in','五種手勢','句型接龍','詞彙快打','Check-out','完成'];
+
+function meta(){
+  document.getElementById('sc').textContent = score + ' 分';
+  document.getElementById('stage').textContent = STAGES[stage];
+  document.getElementById('pb').style.width = (stage/6*100) + '%';
+}
+
+/* ---------- 0 說明 ---------- */
+function intro(){
+  stage=0; meta();
+  app.innerHTML = `
+    <div class="card">
+      <h2>週一晨光 · 全校 5 分鐘</h2>
+      <p class="muted">不需要外師、不需要教材費、不佔任何一節課。這是我八年來投入產出比最高的設計。</p>
+      <div class="card tint" style="padding:12px">
+        <b>Check-in</b> 情緒進場　▸　<b>Topic</b> 本週主題　▸　<b>Practice</b> 句型練習　▸　<b>Check-out</b> 一句話帶走
+      </div>
+      <p class="tiny">接下來你會用學生的身分走一次這個流程。</p>
+    </div>
+    <button onclick="stage=1;checkin()">Check-in 開始 →</button>`;
+}
+
+/* ---------- 1 Check-in ---------- */
+function checkin(){
+  meta();
+  app.innerHTML = `
+    <div class="card">
+      <h2>How do you feel today?</h2>
+      <p class="muted">辰光的孩子每週一早上都要回答這一題。四種情緒、四種顏色、四個手勢——一年級也做得到。</p>
+      <div class="emo">
+        ${EMO.map(e=>`<button style="background:${e.c}" onclick="setEmo('${e.k}',this)">${e.zh}</button>`).join('')}
+      </div>
+      <button id="cn" disabled onclick="stage=2;i=0;gest()">下一步 →</button>
+    </div>`;
+}
+function setEmo(k, el){
+  myEmo = k;
+  document.querySelectorAll('.emo button').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('cn').disabled = false;
+  if (score < 10) score += 10;
+  meta();
+}
+
+/* ---------- 2 五種手勢 ---------- */
+function gest(){
+  meta();
+  const g = GEST[i];
+  app.innerHTML = `
+    <div class="card">
+      <div class="tiny" style="color:var(--teal2);font-weight:700">辰光五種手勢　第 ${i+1} / ${GEST.length} 題</div>
+      <div style="font-size:19px;font-weight:700;margin:12px 0 2px">${APP.esc(g.t)}</div>
+      <div class="tiny">這個動作代表什麼？</div>
+    </div>
+    ${GEST_OPTS.map((o,k)=>`<button class="opt" onclick="pickG(${k})">${APP.esc(o)}</button>`).join('')}`;
+}
+function pickG(k){
+  const g = GEST[i], ok = GEST_OPTS[k] === g.a;
+  if (ok) score += 6;
+  document.querySelectorAll('.opt').forEach((b,idx)=>{ b.onclick=null;
+    if (GEST_OPTS[idx]===g.a) b.classList.add('right');
+    else if (idx===k) b.classList.add('wrong'); else b.classList.add('dim'); });
+  app.insertAdjacentHTML('beforeend',
+    `<div class="fb ${ok?'ok':'no'}"><b>${ok?'答對 +6':'正解：'+APP.esc(g.a)}</b>${g.why}</div>
+     <button onclick="nextG()">${i===GEST.length-1?'進入句型接龍 →':'下一題 →'}</button>`);
+  meta(); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+function nextG(){ i++; if(i>=GEST.length){ stage=3; i=0; frame(); } else gest(); window.scrollTo({top:0}); }
+
+/* ---------- 3 句型接龍 ---------- */
+function frame(){
+  meta();
+  const f = FRAMES[i];
+  app.innerHTML = `
+    <div class="card">
+      <div class="tiny" style="color:var(--amberD);font-weight:700">句型接龍　第 ${i+1} / ${FRAMES.length} 題</div>
+      <div style="font-size:18px;font-weight:700;margin:12px 0;line-height:1.5">${APP.esc(f.q)}</div>
+    </div>
+    ${f.o.map((o,k)=>`<button class="opt" onclick="pickF(${k})">${APP.esc(o)}</button>`).join('')}`;
+}
+function pickF(k){
+  const f = FRAMES[i], ok = k === f.a;
+  if (ok) score += 8;
+  document.querySelectorAll('.opt').forEach((b,idx)=>{ b.onclick=null;
+    if(idx===f.a) b.classList.add('right'); else if(idx===k) b.classList.add('wrong'); else b.classList.add('dim'); });
+  app.insertAdjacentHTML('beforeend',
+    `<div class="fb ${ok?'ok':'no'}"><b>${ok?'答對 +8':'正解：'+APP.esc(f.o[f.a])}</b>${f.why}</div>
+     <button onclick="nextF()">${i===FRAMES.length-1?'情緒詞彙快打 →':'下一題 →'}</button>`);
+  meta(); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+function nextF(){ i++; if(i>=FRAMES.length){ stage=4; rushIntro(); } else frame(); window.scrollTo({top:0}); }
+
+/* ---------- 4 60 秒詞彙快打 ---------- */
+function rushIntro(){
+  meta();
+  app.innerHTML = `
+    <div class="card center">
+      <h2>60 秒 · 情緒詞彙快打</h2>
+      <p class="muted">看中文，選英文。答對 +2、答錯 −1。<br>辰光的孩子只需要記四個字；今天多給你八個。</p>
+      <button class="amber" onclick="rushStart()">開始（60 秒）</button>
+    </div>`;
+}
+let tLeft = 60, rushOn = false;
+function rushStart(){
+  rushOn = true; tLeft = 60; vHit = 0; vMiss = 0; rushPts = 0;
+  timer = setInterval(()=>{ tLeft--; const el=document.getElementById('tm');
+    if(el) el.textContent = tLeft + ' 秒';
+    if(tLeft<=0){ clearInterval(timer); rushEnd(); } }, 1000);
+  rushQ();
+}
+function rushQ(){
+  if(!rushOn) return;
+  const pair = VOCAB[Math.floor(Math.random()*VOCAB.length)];
+  const opts = APP.shuffle([pair[1], ...APP.shuffle(ALLW.filter(w=>w!==pair[1])).slice(0,3)]);
+  app.innerHTML = `
+    <div class="card center">
+      <div style="display:flex;justify-content:space-between;font-weight:800">
+        <span style="color:var(--ok)">✓ ${vHit}</span>
+        <span id="tm" style="color:var(--err)">${tLeft} 秒</span>
+      </div>
+      <div style="font-size:38px;font-weight:800;margin:16px 0;color:var(--teal)">${pair[0]}</div>
+    </div>
+    ${opts.map(o=>`<button class="opt center" style="text-align:center" onclick="rushPick('${o}','${pair[1]}')">${o}</button>`).join('')}`;
+}
+function rushPick(pick, ans){
+  if(pick===ans){ vHit++; if(rushPts < RUSH_CAP){ rushPts += 2; score += 2; } }
+  else { vMiss++; if(rushPts > 0){ rushPts--; score = Math.max(0, score-1); } }
+  meta(); rushQ();
+}
+function rushEnd(){
+  rushOn = false; stage = 5; meta();
+  app.innerHTML = `
+    <div class="card center">
+      <h2>時間到</h2>
+      <div style="font-size:44px;font-weight:800;color:var(--teal)">${vHit}</div>
+      <div class="muted">答對 ${vHit} 題 · 答錯 ${vMiss} 題</div>
+    </div>
+    <div class="card warm">
+      <h3>為什麼 SEL 是雙語最好的載體？</h3>
+      <p class="tiny">情緒詞彙只有四個：happy, sad, angry, worried。學科詞彙動輒二十個。<br>
+      門檻低、重複率高、情境是真的、而且沒有標準答案——所以學生不怕說錯。</p>
+    </div>
+    <button onclick="checkout()">最後一步 · Check-out →</button>`;
+}
+
+/* ---------- 5 Check-out ---------- */
+function checkout(){
+  meta();
+  app.innerHTML = `
+    <div class="card">
+      <h2>Check-out · 一句話帶走</h2>
+      <p class="muted">辰光每週一的最後一步。中文說感受，英語喊口號。</p>
+      <label>我現在覺得＿＿＿。</label>
+      <input id="fe" maxlength="30" placeholder="例：有點被提醒到">
+      <label>I am ＿＿＿.（用一個形容詞描述你自己）</label>
+      <input id="ia" maxlength="20" placeholder="例：curious / tired / ready">
+      <label>I can ＿＿＿.（回學校後你可以做的一件小事）</label>
+      <input id="ic" maxlength="60" placeholder="例：try a 3-minute check-in with my class">
+      <button onclick="finish()">送出並看結果 →</button>
+    </div>`;
+}
+
+async function finish(){
+  const fe = document.getElementById('fe').value.trim();
+  const ia = document.getElementById('ia').value.trim();
+  const ic = document.getElementById('ic').value.trim();
+  if (fe) score += 4; if (ia) score += 4; if (ic) score += 4;
+  stage = 6; meta();
+  app.innerHTML = `
+    <div class="card center">
+      <div class="tiny">關卡 3 完成</div>
+      <div style="font-size:52px;font-weight:800;color:var(--teal);line-height:1.1">${score}</div>
+      <div class="muted">滿分 ${MAX} 分</div>
+    </div>
+    ${(ia||ic) ? `<div class="card warm center">
+      <div class="tiny">你的 Best Bear 政見</div>
+      <div style="font-size:20px;font-weight:800;margin:8px 0;line-height:1.5">
+        I am ${APP.esc(ia||'___')}.<br>I can ${APP.esc(ic||'___')}.</div>
+      <div class="tiny">這句話會出現在講台的文字牆上</div>
+    </div>` : ''}
+    <div class="card dark">
+      <h3>回學校可以馬上做的</h3>
+      <p class="tiny" style="color:#cfe0de">
+      國中版本：把四情緒 check-in 放進導師時間或班會的前 3 分鐘。<br>
+      不用全校同步，先讓 3 個願意的導師跑一學期。<br><br>
+      科任版本：Check-in ▸ 重置 Reset ▸ 再連結 Re-connect ▸ Check-out。<br>
+      課的頭尾各花一分鐘——這是 45 分鐘裡投資報酬率最高的一分鐘。</p>
+    </div>
+    <a class="btn" href="g4.html">前往關卡 4 · 校長的兩難 →</a>
+    <a class="btn ghost" href="index.html">回到首頁</a>
+    <div class="tiny center" id="sent">上傳中…</div>`;
+  const r = await APP.send('g3', score, MAX, { emotion: myEmo, feel: fe, iam: ia, ican: ic, vocab: vHit });
+  document.getElementById('sent').textContent =
+    r.ok ? '✓ 已送到主持人畫面（情緒雲 ＋ 文字牆）' : (r.offline ? '（離線模式：只存在這支手機）' : '上傳失敗，已存在本機');
+}
+
+intro();
+</script>
+</body>
+</html>
