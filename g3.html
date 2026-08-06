@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>關卡 3 · SEL 晨光句型挑戰</title>
+<title>關卡 3 · SEL 辰光句型挑戰</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,7 +18,7 @@
 <script>
 const me = APP.requireMe();
 document.getElementById('hd').innerHTML =
-  APP.header('關卡 3 · SEL 晨光句型挑戰', 'PART III ｜ 辰光週一晨光的完整流程', true);
+  APP.header('關卡 3 · SEL 辰光句型挑戰', 'PART III ｜ 辰光國小週一辰光的完整流程', true);
 
 const EMO = [
   { k:'happy',   zh:'開心 Happy',   c:'#1E8449' },
@@ -38,13 +38,13 @@ const GEST_OPTS = ['Silence','I have something to say','Back – Think – Tell'
 
 const FRAMES = [
   { q:'When I feel sad, who can help me?', o:['My friend can help me.','I am sad because of you.','Sad is not good.','You should not be sad.'], a:0,
-    why:'留空句型的重點是「每個孩子填的答案都不一樣」。My ___ can help me. —— 這是辰光晨光真的在用的句子。' },
+    why:'留空句型的重點是「每個孩子填的答案都不一樣」。My ___ can help me. —— 這是辰光國小真的在用的句子。' },
   { q:'看到同學需要幫忙，你要說：', o:['You are wrong.','Can I help you?','That is not my job.','Ask the teacher.'], a:1,
     why:'辰光的人際技巧單元：Can I help you? → I can help you! → Thank you! 三句話就是一次完整的互動。' },
   { q:'When I feel angry, what can I do to calm down?', o:['I can shout louder.','I can blame my friend.','I can take a deep breath.','I can leave the school.'], a:2,
     why:'泡泡呼吸：想像吹泡泡，吸氣數 3、吐氣數 4，共做 3 次。全英語指令、零理解門檻。' },
-  { q:'興南 Best Bear 選舉、辰光晨光 SEL，用的是同一個句型框架：', o:['I like ___ and ___.','I am ___. I can ___.','This is a ___.','Do you like ___?'], a:1,
-    why:'I am warm. I can give you a hug when you feel sad. —— 六個字的框架，撐起了一整場全校選舉，也撐起了三年的晨光 SEL。' },
+  { q:'興南 Best Bear 選舉、辰光 SEL，用的是同一個句型框架：', o:['I like ___ and ___.','I am ___. I can ___.','This is a ___.','Do you like ___?'], a:1,
+    why:'I am warm. I can give you a hug when you feel sad. —— 六個字的框架，撐起了一整場全校選舉，也撐起了三年的辰光 SEL。' },
 ];
 
 const VOCAB = [
@@ -72,7 +72,7 @@ function intro(){
   stage=0; meta();
   app.innerHTML = `
     <div class="card">
-      <h2>週一晨光 · 全校 5 分鐘</h2>
+      <h2>週一辰光 · 全校 5 分鐘</h2>
       <p class="muted">不需要外師、不需要教材費、不佔任何一節課。這是我八年來投入產出比最高的設計。</p>
       <div class="card tint" style="padding:12px">
         <b>Check-in</b> 情緒進場　▸　<b>Topic</b> 本週主題　▸　<b>Practice</b> 句型練習　▸　<b>Check-out</b> 一句話帶走

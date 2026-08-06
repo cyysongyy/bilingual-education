@@ -13,7 +13,7 @@ const GAMES = [
     desc: '把 12 張卡片分到 Language OF / FOR / THROUGH，再挑戰 CLIL 名詞辨識。', mins: 5 },
   { id: 'g2', file: 'g2.html', n: '2', title: 'CLIL 教案拼裝廠', part: 'PART II ｜ 興南 CLIL',
     desc: '用國中理化「浮力」當範例，把碎片放進三欄；最後做出你自己的一份三欄簡案。', mins: 8 },
-  { id: 'g3', file: 'g3.html', n: '3', title: 'SEL 晨光句型挑戰', part: 'PART III ｜ 辰光 SEL',
+  { id: 'g3', file: 'g3.html', n: '3', title: 'SEL 辰光句型挑戰', part: 'PART III ｜ 辰光 SEL',
     desc: '情緒 Check-in、留空句型接龍、60 秒情緒詞彙快打、一句話 Check-out。', mins: 7 },
   { id: 'g4', file: 'g4.html', n: '4', title: '校長的兩難', part: 'PART IV ｜ 行政推動',
     desc: '五個真實情境、四個指標。你的每一個決定都會改變教師信任與續航力。', mins: 8 },
