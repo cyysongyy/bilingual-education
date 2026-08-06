@@ -6,7 +6,7 @@
    沒有貼也可以正常玩（自動切成「離線模式」，成績只存在自己手機）。
    ===================================================================== */
 
-const GAS_URL = ''; // ← 例如 'https://script.google.com/macros/s/AKfycb.../exec'
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwL5L2FzsGbsO0DmQNuwZzbUcH6KlxcBxr1nZ-1gzRsQr5zjar9tOBReI6jEDRlVNk5/exec';
 
 const GAMES = [
   { id: 'g1', file: 'g1.html', n: '1', title: '三種語言分類挑戰', part: 'PART I ｜ 觀念地基',
