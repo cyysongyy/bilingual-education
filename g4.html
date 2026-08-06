@@ -16,6 +16,7 @@
 </div>
 
 <script src="common.js"></script>
+<script src="art.js"></script>
 <script>
 const me = APP.requireMe();
 document.getElementById('hd').innerHTML =
@@ -131,8 +132,44 @@ function intro(){
         ${Object.keys(KEY).map(k=>`<span class="badge" style="background:${COL[k]};margin-right:6px">${KEY[k]}</span>`).join('')}
       </div>
       <p class="tiny">最後會依四個指標的組合，給你一種「校長型」——四種都有代價，也都有價值。</p>
-      <button onclick="i=0;picks=[];S={T:50,P:50,Q:50,E:50};q()">開始 →</button>
+      <button onclick="warmup()">開始 →</button>
     </div>`;
+}
+
+/* ---------- 暖身：圖表判讀 ---------- */
+const WARM = {
+  q:'這是興南同一週、四個班的英語使用比例。身為校長，你會怎麼解讀？',
+  o:[
+    '執行落差：比例低的老師要再加強，訂全校統一標準',
+    '差異就是常態：比例該由「學生聽得懂多少」決定，不是行政訂 KPI',
+    '成效不彰：四個班都不到六成，應該重新檢討整個計畫'],
+  a:1,
+  why:'低年級比例最高，因為指令重複、動作可視；高年級數學最低，因為概念一難，語言就必須讓路。'+
+      '<br><br>給行政的建議：把 KPI 從「英語使用比例」改成「每學期產出幾份共備簡案、辦幾次觀議課」。'+
+      '前者逼老師演戲，後者逼老師思考。'
+};
+function warmup(){
+  document.getElementById('gauge').innerHTML = '';
+  document.getElementById('stage').textContent = '暖身 · 圖表判讀';
+  document.getElementById('sc').textContent = '';
+  document.getElementById('pb').style.width = '0%';
+  app.innerHTML = `
+    <div class="card">
+      <span class="tag a">暖身題</span>
+      <div class="artbox">${ART.ratioChart()}</div>
+      <div style="font-size:16px;font-weight:700;margin:8px 0;line-height:1.5">${APP.esc(WARM.q)}</div>
+    </div>
+    ${WARM.o.map((o,k)=>`<button class="opt" onclick="pickW(${k})">${APP.esc(o)}</button>`).join('')}`;
+  window.scrollTo({top:0});
+}
+function pickW(k){
+  const ok = k === WARM.a;
+  document.querySelectorAll('.opt').forEach((b,idx)=>{ b.onclick=null;
+    if (idx===WARM.a) b.classList.add('right'); else if (idx===k) b.classList.add('wrong'); else b.classList.add('dim'); });
+  app.insertAdjacentHTML('beforeend',
+    `<div class="fb ${ok?'ok':'no'}"><b>${ok?'就是這樣':'正解：'+APP.esc(WARM.o[WARM.a])}</b>${WARM.why}</div>
+     <button onclick="i=0;picks=[];S={T:50,P:50,Q:50,E:50};q()">進入五個情境 →</button>`);
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
 }
 
 function q(){

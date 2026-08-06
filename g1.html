@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>關卡 1 · 三種語言分類挑戰</title>
+<title>關卡 1 · 三種語言看圖分類</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,164 +15,188 @@
 </div>
 
 <script src="common.js"></script>
+<script src="art.js"></script>
 <script>
 const me = APP.requireMe();
 document.getElementById('hd').innerHTML =
-  APP.header('關卡 1 · 三種語言分類挑戰', 'PART I ｜ Language OF / FOR / THROUGH', true);
+  APP.header('關卡 1 · 三種語言看圖分類', 'PART I ｜ 看圖就好，不用背定義', true);
 
-/* ---------------- 題庫 ---------------- */
-const R1 = APP.shuffle([
-  { t:'bamboo brush 毛筆 · rice paper 宣紙 · brush washer 筆洗桶', a:'OF',
-    why:'學科的關鍵字彙。沒有這些字，學生就無法談論這個單元的內容——這是 Language OF learning。（興南美術沉浸式課程實例）' },
-  { t:'repel 相斥 · attract 相吸 · N pole / S pole', a:'OF',
-    why:'三年級自然「神奇磁力」的核心字彙，屬於學科本身的語言。' },
-  { t:'tempo · note · rest · 2 beats · rhythm', a:'OF',
-    why:'四年級音樂「一拍擊合」的專業字彙。學科概念的名字，就是 Language OF learning。' },
-  { t:'numerator 分子 · denominator 分母 · equals', a:'OF',
-    why:'數學單元的關鍵語言。備課時第一個要決定的，就是這五個字。' },
-  { t:'Let\'s form a group of three.', a:'FOR',
-    why:'這是為了「完成活動」而需要的語言，不是學科內容本身——Language FOR learning。' },
-  { t:'Can I help you? · Whose turn is it? · You go first.', a:'FOR',
-    why:'小組合作時的互動語言。pair work、asking questions 都屬於這一類。' },
-  { t:'I agree with you, because ___.', a:'FOR',
-    why:'討論與下結論用的語言（debating / drawing conclusion），可以事先備妥並張貼在教室。' },
-  { t:'Raise your hand if you are done.', a:'FOR',
-    why:'課室指令。老師會在每一堂課重複的話，屬於 Language FOR learning。' },
-  { t:'學生突然舉手問：「老師，那如果三個磁鐵疊在一起呢？」', a:'THROUGH',
-    why:'你備不到這一句。這是在學習過程中「長出來」的語言——Language THROUGH learning，只能現場接住。' },
-  { t:'學生在聯絡簿寫：「我也會用英語買東西，好有趣。」', a:'THROUGH',
-    why:'興南低年級的真實紀錄。學習之後自己生出來的語言，個別差異大、無法預測。' },
-  { t:'學生把 repel 用在形容兩個同學吵架', a:'THROUGH',
-    why:'學生把學科字彙遷移到生活情境——這是最珍貴的一種語言，也完全無法事先規劃。' },
-  { t:'學生問：「Teacher, why is my group wrong?」', a:'THROUGH',
-    why:'學生為了理解自己的錯誤而自己造的句。老師唯一能做的準備，是願意說「我們一起查」。' },
-]);
-
-const R2 = [
-  { q:'哪一種模式的「主角是學科老師」，學科目標第一、語言目標第二？',
-    o:['CLIL','EMI','Immersion','ESL / EFL'], a:0,
-    why:'CLIL = Content and Language Integrated Learning。它不要求老師英語很好，只要求老師把一個單元的關鍵語言想清楚——這是公立國中小唯一可大規模推行的模式。' },
-  { q:'下列哪一項「不是」雙語教育？',
-    o:['數學課用英語說 2 times 5 is 10','體育課用英語帶暖身操','英語課教學生拼 mother 這個字','社會課用英語討論 SDGs'], a:2,
-    why:'英語課本身語言就是「內容」，那是 ESL / EFL，不是雙語教育。雙語是「用英語做學科的事」。' },
-  { q:'雙語課的期末評量，最不該出現的是？',
-    o:['答案寫中文也算對','用畫圖表達概念','考學生能不能正確拼出 density','小組口頭報告'], a:2,
-    why:'「不要把評量英語能力的重點放在檢測學生是否能完成字彙拼讀或理解文法句型」——那是英語課的事。興南第一版考卷就是這樣踩坑的。' },
-  { q:'CLIL 的 4C 中，最常被忽略、一旦沒設計課就會變成單字背誦的是？',
-    o:['Content 內涵','Cognition 認知','Communication 溝通','Culture 文化'], a:1,
-    why:'Cognition 就是「學生要用什麼層次的思考」。填不出 Cognition 那一欄，這堂課就還不是 CLIL。' },
-];
-
-const LABELS = {
-  OF:   { t:'Language OF learning',      zh:'學習的語言（學科關鍵字彙／句構）', c:'var(--teal)' },
-  FOR:  { t:'Language FOR learning',     zh:'為了完成活動所需要的語言',        c:'var(--teal2)' },
-  THROUGH:{ t:'Language THROUGH learning', zh:'學習中長出來、無法預測的語言',  c:'var(--amber)' },
+const LAB = {
+  OF:      { t:'Language OF', zh:'學科本身的語言', c:'var(--teal)' },
+  FOR:     { t:'Language FOR', zh:'為了跑活動的語言', c:'var(--teal2)' },
+  THROUGH: { t:'Language THROUGH', zh:'學生自己長出來的', c:'var(--amber)' },
 };
 
-let i = 0, score = 0, phase = 1, wrong = [];
-const TOTAL = R1.length + R2.length;
+/* ---------- 第一輪：看圖分類（6 題） ---------- */
+const R1 = APP.shuffle([
+  { art:'mapGeo', cap:'地理課的地圖', a:'OF',
+    why:'equator、latitude、longitude —— 沒有這些字就沒辦法談這個單元。學科概念的名字＝Language OF。' },
+  { art:'posterClass', cap:'貼在教室牆上的海報', a:'FOR',
+    why:'指令不是學科內容，是為了讓活動跑起來。這一類可以印出來貼牆上，一次備好用一整年。' },
+  { art:'studentQ', cap:'學生突然舉手', a:'THROUGH',
+    why:'「那如果反過來做呢？」——你備不到這一句。THROUGH 只能現場接住，接不住就說「我們一起查」。' },
+  { art:'recipe', cap:'家政課的食譜', a:'OF',
+    why:'chop、boil、stir 是這個單元的動作核心。家政其實是最好做雙語的科目之一：每個動詞都看得見。' },
+  { art:'boardFrame', cap:'黑板上的討論句框', a:'FOR',
+    why:'「I agree with you, because ___.」是讓討論跑起來的語言，任何科目都通用。' },
+  { art:'diaryNote', cap:'孩子自己寫的聯絡簿', a:'THROUGH',
+    why:'興南低年級的真實紀錄。孩子把課堂語言帶回生活——這是最珍貴、也最不能計畫的一種。' },
+]);
+
+/* ---------- 第二輪：跨科快問（8 題，輕鬆版） ---------- */
+const SUBJ = ['國文','歷史','地理','公民','數學','理化','生物','健體','音樂','視覺藝術','家政','資訊科技'];
+const R2 = APP.shuffle([
+  { q:'“Chop the onion. Don\'t cry!”', a:'家政', o:['家政','生物','理化','健體'],
+    why:'家政課的動詞全都看得見、摸得到——刀子一舉起來，chop 就不用翻譯了。' },
+  { q:'“Pass the ball! Don\'t travel!”', a:'健體', o:['健體','數學','公民','音樂'],
+    why:'籃球的「走步」就叫 travel。體育課的雙語含金量被大大低估了：動作即翻譯。' },
+  { q:'“Two beats. Clap with me.”', a:'音樂', o:['音樂','健體','數學','國文'],
+    why:'興南四年級音樂「一拍擊合」真的這樣上。節拍用身體打，語言負擔幾乎是零。' },
+  { q:'“Mix red and blue. What do you get?”', a:'視覺藝術', o:['視覺藝術','理化','數學','生物'],
+    why:'顏色混合的結果孩子當場看得到——不需要老師解釋 purple 是什麼。' },
+  { q:'“This dynasty lasted about 300 years.”', a:'歷史', o:['歷史','地理','公民','國文'],
+    why:'歷史科的雙語難點在抽象名詞，但時間軸畫出來就有救：把 dynasty 掛在一條線上。' },
+  { q:'“Press F5 to run your program.”', a:'資訊科技', o:['資訊科技','數學','理化','視覺藝術'],
+    why:'程式語言本來就是英文。資訊科技幾乎是「已經在做雙語」，只是沒有人這樣稱呼它。' },
+  { q:'“This character has three strokes.”', a:'國文', o:['國文','視覺藝術','歷史','數學'],
+    why:'國文也能雙語——用英語談漢字的筆畫、部首、結構，反而讓學生重新看見中文。' },
+  { q:'“Whose right is being protected here?”', a:'公民', o:['公民','歷史','國文','健體'],
+    why:'公民科的雙語切入點是「議題」：性平、人權、永續。有立場，就有話想說。' },
+]);
+
+/* ---------- 第三輪：三個關鍵觀念 ---------- */
+const R3 = [
+  { q:'哪一種模式的主角是「學科老師」，不是英語老師？',
+    o:['CLIL','EMI','Immersion','ESL'], a:0,
+    why:'CLIL 不要求老師英語很好，只要求把一個單元的關鍵語言想清楚。這是公立國中小唯一可大規模推行的模式。' },
+  { q:'下列哪一項「不是」雙語教育？',
+    o:['體育課用英語帶暖身操','數學課說 2 times 5 is 10','英語課教學生拼 mother','社會課用英語討論 SDGs'], a:2,
+    why:'英語課的內容就是語言本身，那是 ESL。雙語是「用英語做別科的事」。' },
+  { q:'雙語課的期末考，最不該出現哪一題？',
+    o:['答案可以寫中文','用畫圖說明概念','考學生拼 density 這個字','小組口頭報告'], a:2,
+    why:'興南第一版考卷就是這樣踩坑的——數學好、英語弱的孩子被誤判成「學不會」，家長隔天就來電。' },
+];
+
+let phase = 0, i = 0, score = 0, wrong = [];
+const TOTAL = R1.length + R2.length + R3.length;
 const app = document.getElementById('app');
 
 function meta(){
   document.getElementById('sc').textContent = score + ' 分';
+  const names = ['說明','看圖分類','跨科快問','三個觀念','完成'];
   document.getElementById('stage').textContent =
-    phase === 0 ? '說明' : (phase === 3 ? '完成' : `第 ${i+1} / ${phase===1?R1.length:R2.length} 題　·　${phase===1?'分類':'名詞'}`);
-  const doneN = phase===1 ? i : (phase===2 ? R1.length + i : TOTAL);
-  document.getElementById('pb').style.width = (doneN / TOTAL * 100) + '%';
+    phase === 0 || phase === 4 ? names[phase]
+    : `${names[phase]}　${i+1} / ${[0,R1.length,R2.length,R3.length][phase]}`;
+  const done = phase===1 ? i : phase===2 ? R1.length+i : phase===3 ? R1.length+R2.length+i : phase===4 ? TOTAL : 0;
+  document.getElementById('pb').style.width = (done/TOTAL*100) + '%';
 }
 
 function intro(){
   phase = 0; meta();
   app.innerHTML = `
     <div class="card">
-      <h2>備課時，你能掌握的只有前兩種</h2>
-      <p class="muted">興南 108 學年度請雲林國小文湘娥老師來分享時留下的架構，後來變成我們所有教案的分類法。</p>
-      ${Object.entries(LABELS).map(([k,v])=>`
-        <div class="card tint" style="margin-bottom:8px;padding:13px">
-          <div style="font-weight:800;color:${v.c}">${v.t}</div>
-          <div class="tiny">${v.zh}</div>
-        </div>`).join('')}
-      <button onclick="start()">開始挑戰（12 張卡 + 4 題）</button>
+      <h2>不用背定義，看圖就好</h2>
+      <p class="muted">三種語言的差別，用三張圖就講得完：</p>
+      <div class="artgrid" style="grid-template-columns:1fr">
+        <div class="artbox">${ART.mapGeo()}
+          <div class="tiny center"><b style="color:var(--teal)">OF</b>　學科本身的語言（地圖上的那些字）</div></div>
+        <div class="artbox">${ART.posterClass()}
+          <div class="tiny center"><b style="color:var(--teal2)">FOR</b>　為了跑活動的語言（牆上的指令）</div></div>
+        <div class="artbox">${ART.studentQ()}
+          <div class="tiny center"><b style="color:var(--amber)">THROUGH</b>　學生自己長出來的（你備不到的那句）</div></div>
+      </div>
+      <p class="tiny">接下來 6 張圖、8 題跨科快問、3 個觀念。大概 5 分鐘。</p>
+      <button onclick="start()">開始 →</button>
     </div>`;
 }
-
 function start(){ phase = 1; i = 0; score = 0; wrong = []; q1(); }
 
+/* 第一輪 */
 function q1(){
   meta();
   const c = R1[i];
   app.innerHTML = `
     <div class="card">
-      <div class="tiny" style="color:var(--teal2);font-weight:700">這句話／這組字，屬於哪一種語言？</div>
-      <div style="font-size:18px;font-weight:700;margin:12px 0 4px;line-height:1.5">${APP.esc(c.t)}</div>
+      <span class="tag">看圖分類</span>
+      <div class="artbox">${ART[c.art]()}</div>
+      <div class="center" style="font-weight:800;font-size:15px">${c.cap}</div>
+      <div class="tiny center">這裡出現的語言屬於哪一種？</div>
     </div>
-    ${Object.entries(LABELS).map(([k,v])=>`
+    ${Object.entries(LAB).map(([k,v])=>`
       <button class="opt" onclick="pick1('${k}')">
-        <span style="color:${v.c}">${v.t}</span>
-        <small>${v.zh}</small>
+        <span style="color:${v.c}">${v.t}</span><small>${v.zh}</small>
       </button>`).join('')}`;
 }
-
 function pick1(k){
-  const c = R1[i];
-  const ok = k === c.a;
-  if (ok) score += 5; else wrong.push(c.t);
-  document.querySelectorAll('.opt').forEach((b, idx) => {
-    const key = Object.keys(LABELS)[idx];
-    b.onclick = null;
-    if (key === c.a) b.classList.add('right');
-    else if (key === k) b.classList.add('wrong');
-    else b.classList.add('dim');
-  });
-  app.insertAdjacentHTML('beforeend', `
-    <div class="fb ${ok?'ok':'no'}">
-      <b>${ok ? '答對了 +5' : '正解：' + LABELS[c.a].t}</b>${c.why}
-    </div>
-    <button onclick="next1()">${i === R1.length-1 ? '進入第二輪 →' : '下一題 →'}</button>`);
-  window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
+  const c = R1[i], ok = k === c.a;
+  if (ok) score += 6; else wrong.push(c.cap);
+  document.querySelectorAll('.opt').forEach((b,idx)=>{ b.onclick=null;
+    const key = Object.keys(LAB)[idx];
+    if (key===c.a) b.classList.add('right'); else if (key===k) b.classList.add('wrong'); else b.classList.add('dim'); });
+  app.insertAdjacentHTML('beforeend',
+    `<div class="fb ${ok?'ok':'no'}"><b>${ok?'答對 +6':'正解：'+LAB[c.a].t}</b>${c.why}</div>
+     <button onclick="next1()">${i===R1.length-1?'進入跨科快問 →':'下一張 →'}</button>`);
+  meta(); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
 }
-function next1(){
-  i++;
-  if (i >= R1.length) { phase = 2; i = 0; q2(); } else q1();
-  window.scrollTo({top:0});
-}
+function next1(){ i++; if(i>=R1.length){ phase=2; i=0; q2(); } else q1(); window.scrollTo({top:0}); }
 
+/* 第二輪 */
 function q2(){
   meta();
   const c = R2[i];
+  const opts = APP.shuffle([...c.o]);
+  window._o2 = opts;
   app.innerHTML = `
-    <div class="card">
-      <div class="tiny" style="color:var(--amberD);font-weight:700">第二輪 · 名詞與觀念辨識</div>
-      <div style="font-size:17px;font-weight:700;margin:10px 0;line-height:1.5">${APP.esc(c.q)}</div>
+    <div class="card center">
+      <span class="tag a">跨科快問</span>
+      <div class="tiny">這句話會出現在哪一科的雙語課？</div>
+      <div style="font-size:20px;font-weight:800;margin:14px 0 6px;color:var(--teal);line-height:1.4">${APP.esc(c.q)}</div>
     </div>
-    ${c.o.map((t,idx)=>`<button class="opt" onclick="pick2(${idx})">${APP.esc(t)}</button>`).join('')}`;
+    ${opts.map((o,k)=>`<button class="opt center" style="text-align:center" onclick="pick2(${k})">${o}</button>`).join('')}`;
 }
 function pick2(k){
-  const c = R2[i];
-  const ok = k === c.a;
-  if (ok) score += 10; else wrong.push(c.q);
-  document.querySelectorAll('.opt').forEach((b, idx) => {
-    b.onclick = null;
-    if (idx === c.a) b.classList.add('right');
-    else if (idx === k) b.classList.add('wrong');
-    else b.classList.add('dim');
-  });
-  app.insertAdjacentHTML('beforeend', `
-    <div class="fb ${ok?'ok':'no'}"><b>${ok?'答對了 +10':'正解：'+APP.esc(c.o[c.a])}</b>${c.why}</div>
-    <button onclick="next2()">${i === R2.length-1 ? '看結果 →' : '下一題 →'}</button>`);
-  window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
+  const c = R2[i], opts = window._o2, ok = opts[k] === c.a;
+  if (ok) score += 4; else wrong.push(c.q);
+  document.querySelectorAll('.opt').forEach((b,idx)=>{ b.onclick=null;
+    if (opts[idx]===c.a) b.classList.add('right'); else if (idx===k) b.classList.add('wrong'); else b.classList.add('dim'); });
+  app.insertAdjacentHTML('beforeend',
+    `<div class="fb ${ok?'ok':'no'}"><b>${ok?'答對 +4':'正解：'+c.a}</b>${c.why}</div>
+     <button onclick="next2()">${i===R2.length-1?'剩最後三題 →':'下一題 →'}</button>`);
+  meta(); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
 }
-function next2(){ i++; if (i >= R2.length) done(); else { q2(); window.scrollTo({top:0}); } }
+function next2(){ i++; if(i>=R2.length){ phase=3; i=0; q3(); } else q2(); window.scrollTo({top:0}); }
 
-const MAX = R1.length*5 + R2.length*10;
+/* 第三輪 */
+function q3(){
+  meta();
+  const c = R3[i];
+  app.innerHTML = `
+    <div class="card">
+      <span class="tag g">三個觀念</span>
+      <div style="font-size:17px;font-weight:700;margin:10px 0;line-height:1.5">${APP.esc(c.q)}</div>
+    </div>
+    ${c.o.map((o,k)=>`<button class="opt" onclick="pick3(${k})">${APP.esc(o)}</button>`).join('')}`;
+}
+function pick3(k){
+  const c = R3[i], ok = k === c.a;
+  if (ok) score += 8; else wrong.push(c.q);
+  document.querySelectorAll('.opt').forEach((b,idx)=>{ b.onclick=null;
+    if (idx===c.a) b.classList.add('right'); else if (idx===k) b.classList.add('wrong'); else b.classList.add('dim'); });
+  app.insertAdjacentHTML('beforeend',
+    `<div class="fb ${ok?'ok':'no'}"><b>${ok?'答對 +8':'正解：'+APP.esc(c.o[c.a])}</b>${c.why}</div>
+     <button onclick="next3()">${i===R3.length-1?'看結果 →':'下一題 →'}</button>`);
+  meta(); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+function next3(){ i++; if(i>=R3.length) done(); else { q3(); window.scrollTo({top:0}); } }
+
+const MAX = R1.length*6 + R2.length*4 + R3.length*8;
 
 async function done(){
-  phase = 3; meta();
+  phase = 4; meta();
   const pct = Math.round(score / MAX * 100);
-  const rank = pct >= 90 ? '你已經可以幫學校辦共備了' :
+  const rank = pct >= 90 ? '你可以回學校辦共備了' :
                pct >= 70 ? '觀念很穩，剩下的是實作' :
-               pct >= 50 ? '方向對了，回頭再看一次「三種語言」那張' :
-                           '沒關係——這正是今天要處理的事';
+               pct >= 50 ? '方向對了，回頭再看一次那三張圖' : '沒關係——這正是今天要處理的事';
   app.innerHTML = `
     <div class="card center">
       <div class="tiny">關卡 1 完成</div>
@@ -181,13 +205,16 @@ async function done(){
       <div style="font-weight:700;color:var(--amberD);margin-top:8px">${rank}</div>
     </div>
     <div class="card warm">
-      <h3>帶回學校的一句話</h3>
-      <p>備課時你能掌握的只有前兩種。第三種，靠的是老師願不願意在課堂上說<b>「我也不確定，我們一起查」</b>。</p>
+      <h3>今天最該帶走的一句</h3>
+      <p style="margin:0">備課時你能掌握的只有前兩種。第三種，靠的是老師願不願意在課堂上說<b>「我也不確定，我們一起查」</b>。</p>
+    </div>
+    <div class="card">
+      <h3>剛剛出現過的科目</h3>
+      <p class="muted" style="margin:0">家政 · 健體 · 音樂 · 視覺藝術 · 歷史 · 地理 · 公民 · 國文 · 資訊科技<br>
+      —— 沒有一題是數學或理化。雙語不是數理的專利。</p>
     </div>
     ${wrong.length ? `<div class="card"><h3>你答錯的（值得再看一次）</h3>
       <ul class="muted" style="padding-left:18px;margin:0">${wrong.map(w=>`<li>${APP.esc(w)}</li>`).join('')}</ul></div>` : ''}
-    <div class="card dark"><h3>下一步</h3>
-      <p class="tiny" style="color:#cfe0de">拿出你下個月要教的一個單元，寫下 5 個關鍵字、3 句提問、1 個產出句型。<br>關卡 2 會帶你做完這件事。</p></div>
     <a class="btn" href="g2.html">前往關卡 2 · CLIL 教案拼裝廠 →</a>
     <a class="btn ghost" href="index.html">回到首頁</a>
     <div class="tiny center" id="sent">上傳中…</div>`;
