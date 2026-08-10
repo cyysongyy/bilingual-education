@@ -27,7 +27,14 @@ const GAMES = [
 ];
 
 const APP = {
-  online() { return !!GAS_URL; },
+  online() { return !!GAS_URL && !this.isStandalone(); },
+
+  // ---- standalone / offline solo mode (略過登入，單機作業) ----
+  isStandalone() { return localStorage.getItem('be_standalone') === '1'; },
+  setStandalone(v) {
+    if (v) localStorage.setItem('be_standalone', '1');
+    else localStorage.removeItem('be_standalone');
+  },
 
   session() {
     const q = new URLSearchParams(location.search).get('s');
@@ -60,7 +67,7 @@ const APP = {
   // ---- send to Google Sheet ----
   async send(game, score, max, payload) {
     this.saveResult(game, score, max, payload);
-    if (!GAS_URL) return { ok: false, offline: true };
+    if (!GAS_URL || this.isStandalone()) return { ok: false, offline: true, standalone: this.isStandalone() };
     const m = this.me() || {};
     const body = new URLSearchParams({
       action: 'submit',
@@ -96,7 +103,8 @@ const APP = {
 
   // ---- shared UI ----
   header(title, sub, back) {
-    const off = this.online() ? '' : '<span class="badge off">離線模式</span>';
+    const off = this.isStandalone() ? '<span class="badge off">單機模式</span>'
+      : (this.online() ? '' : '<span class="badge off">離線模式</span>');
     return `<header><div class="wrap">
       ${back ? '<a class="back" href="index.html">&#8249;</a>' : ''}
       <div style="flex:1"><h1>${title}</h1><div class="sub">${sub || ''}</div></div>
