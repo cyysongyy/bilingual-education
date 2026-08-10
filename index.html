@@ -115,7 +115,19 @@ function render(){
   document.getElementById('ptxt').textContent = done + ' / ' + GAMES.length;
   document.getElementById('pbar').style.width = (done/GAMES.length*100) + '%';
 
-  document.getElementById('menu').innerHTML = GAMES.map((g,i)=>{
+  document.getElementById('menu').innerHTML = `
+    <a class="game hero" href="${OPENING.url}" target="_blank" rel="noopener">
+      <div class="n h">▶</div>
+      <div style="flex:1">
+        <div class="tiny" style="color:var(--amberD);font-weight:700">開場 OPENING · 約 3 分鐘</div>
+        <h3>${OPENING.title}</h3>
+        <p>${OPENING.desc}</p>
+        <p class="tiny" style="margin-top:4px;color:var(--amberD)">${OPENING.note}</p>
+      </div>
+      <div class="done" style="color:var(--amberD)">↗</div>
+    </a>
+    <div class="tiny" style="margin:-4px 0 14px 4px">▼ 以下四關，講到哪一段就玩哪一關</div>
+  ` + GAMES.map((g,i)=>{
     const r = res[g.id];
     return `<a class="game" href="${g.file}">
       <div class="n ${i%2?'a':''}">${g.n}</div>
