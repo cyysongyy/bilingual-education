@@ -8,6 +8,13 @@
 
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwL5L2FzsGbsO0DmQNuwZzbUcH6KlxcBxr1nZ-1gzRsQr5zjar9tOBReI6jEDRlVNk5/exec';
 
+const OPENING = {
+  url: 'https://cyysongyy.github.io/heros-journey/',
+  title: '英雄旅程 Hero\'s Journey',
+  desc: '六種模式任選一個玩 3 分鐘：故事模式、你的英雄旅程、弒魔英雄旅、英雄牌旅、內在英雄之旅、奧德賽內在航程。',
+  note: '這是整場研習的開場——因為推動任何改變，本來就是一場英雄旅程。',
+};
+
 const GAMES = [
   { id: 'g1', file: 'g1.html', n: '1', title: '三種語言分類挑戰', part: 'PART I ｜ 觀念地基',
     desc: '把 12 張卡片分到 Language OF / FOR / THROUGH，再挑戰 CLIL 名詞辨識。', mins: 5 },
