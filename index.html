@@ -34,6 +34,8 @@
       </select>
       <button onclick="join()">開始 →</button>
       <p class="tiny center">資料只用於本場研習的即時統計，研習結束後即可刪除。</p>
+      <button class="ghost small mt" onclick="skipJoin()">略過，單機作業 →</button>
+      <p class="tiny center">單機作業：不用填資料就能玩，成績只留在自己手機，不會同步到講台畫面。</p>
     </div>
   </div>
 
@@ -91,21 +93,36 @@
 <script>
 const shareURL = location.href.split('#')[0].split('?')[0];
 
-document.getElementById('mode').textContent = APP.online() ? '已連線' : '離線模式';
-if (!APP.online()) document.getElementById('mode').className = 'badge off';
+function updateBadge(){
+  const mode = document.getElementById('mode');
+  mode.textContent = APP.isStandalone() ? '單機模式' : (APP.online() ? '已連線' : '離線模式');
+  mode.className = APP.online() && !APP.isStandalone() ? 'badge' : 'badge off';
+}
+updateBadge();
 
 function join(){
   const name = document.getElementById('name').value.trim();
   if(!name){ alert('請先輸入暱稱'); return; }
+  APP.setStandalone(false);
   APP.setMe({
     name,
     school: document.getElementById('school').value.trim(),
     role: document.getElementById('role').value,
     pid: (APP.me()||{}).pid
   });
+  updateBadge();
   render();
 }
-function logout(){ localStorage.removeItem('be_me'); localStorage.removeItem('be_res'); location.reload(); }
+function skipJoin(){
+  APP.setStandalone(true);
+  APP.setMe({ name: '單機模式', school: '', role: '', pid: (APP.me()||{}).pid });
+  updateBadge();
+  render();
+}
+function logout(){
+  localStorage.removeItem('be_me'); localStorage.removeItem('be_res'); APP.setStandalone(false);
+  location.reload();
+}
 
 function render(){
   const me = APP.me();
@@ -113,8 +130,10 @@ function render(){
     document.getElementById('main').classList.add('hide'); return; }
   document.getElementById('login').classList.add('hide');
   document.getElementById('main').classList.remove('hide');
-  document.getElementById('hello').textContent = 'Hi, ' + me.name;
-  document.getElementById('whoami').textContent = [me.school, me.role].filter(Boolean).join(' · ');
+  document.getElementById('hello').textContent = APP.isStandalone() ? '單機作業中 🎮' : ('Hi, ' + me.name);
+  document.getElementById('whoami').textContent = APP.isStandalone()
+    ? '成績只留在這支裝置，不會同步到講台畫面'
+    : [me.school, me.role].filter(Boolean).join(' · ');
 
   const res = APP.results();
   const done = GAMES.filter(g => res[g.id]).length;
